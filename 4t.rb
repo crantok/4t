@@ -2,8 +2,7 @@
 
 class Config
 
-  # default init
-  def intialize
+  def initialize
     @abbreviations = {
       's' => 'Start time',
       'e' => 'End time',
@@ -18,25 +17,27 @@ class Config
     }
   end
   
-# def init_from_file
-  
-  # Abbrev is an empty string by default - how do we do this?
-  def add_category cat abbrev
-    # if @options[cat] != nil
-      # return
-    # @options[cat] == []
-    # set_abbreviation()
+  def set_all abbreviations, options
+    @abbreviations = abbreviations
+    @options = options
   end
 
-  # can set abreviation to empty string!
-  def set_abbreviation cat abbrev
-    # @abbreviations[cat] = abbrev
+  def add_category cat, abbrev=''
+    return if @options[cat] != nil
+    @options[cat] == []
+    set_abbreviation( abbrev )
+  end
+
+  def set_abbreviation cat, abbrev
+    return if @options[cat] == nil
+    @abbreviations[cat] = abbrev
   end
 
   def get_options cat
-    # return @options[cat]
+    return @options[cat]
   end
 end
+
 
 class TimeRecord
   # Do we want a data structure for a TimeRecord, or do we just want to keep all
@@ -65,6 +66,6 @@ class TimeRecord
 end
 
 
-p categories
-p abbreviations
+#p categories
+#p abbreviations
 
