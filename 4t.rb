@@ -2,26 +2,41 @@
 
 require 'time'
 
+
+def get_new_id
+  case RUBY_PLATFORM
+  when /linux/
+    return `uuidgen`.strip
+  else
+    raise 'UUID generation is not yet supported on #{RUBY_PLATFORM}'
+  end
+end
+
+
 class Config
 
+  class Category
+    attr_accessor :id, :name, :abbreviation, :options
+    def initialize id, name, abbreviation, options
+      @id = id
+      @name = name
+      @abbreviation = abbreviation
+      @options = options
+    end
+  end
+
   def initialize
-    @abbreviations = {
-      's' => 'Start time',
-      'e' => 'End time',
-      'p' => 'Project',
-      't' => 'Task',
-      'c' => 'Class'
-    }
-    @options = {
-      'Project' => [],
-      'Task' => [],
-      'Class' => []
-    }
+    @categories = [
+      Category.new( get_new_id(), 'Start time', 's', nil ),
+      Category.new( get_new_id(), 'End time',   'e', nil ),
+      Category.new( get_new_id(), 'Project',    'p', [] ),
+      Category.new( get_new_id(), 'Task',       't', [] ),
+      Category.new( get_new_id(), 'Class',      'c', [] )
+    ]
   end
   
-  def set_all abbreviations, options
-    @abbreviations = abbreviations
-    @options = options
+  def reinitialize categories
+    @categories = categories
   end
 
   def add_category cat, abbrev=''
@@ -48,6 +63,12 @@ class Config
 
   def get_options cat
     return @options[cat]
+  end
+
+private
+
+  def get_categories attribute, value
+    @categories.select { |v| v.method( attribute ) == value }
   end
 end
 
@@ -152,17 +173,6 @@ class RecordList
     result
   end
   
-private
-
-  def get_new_id
-    case RUBY_PLATFORM
-    when /linux/
-      return `uuidgen`.strip
-    else
-      raise 'UUID generation is not yet supported on #{RUBY_PLATFORM}'
-    end
-  end
-
 end
 
 
