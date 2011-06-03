@@ -58,12 +58,14 @@ class Record
   attr_reader :description, :start_time, :end_time, :categories
 
   def initialize text
-    self.set_all text
+    self.reinitialize text
   end
   
-  def set_all text
-    @categories = Hash.new( [] )
+  def reinitialize text
     description = []
+    @start_time = nil
+    @end_time = nil
+    @categories = Hash.new( [] )
     
     ( text.split /\s/ ).each do | word |
 
@@ -94,12 +96,18 @@ class Record
     @description = description.join ' '
   end
 
+  # Return a string that could be parsed by Record#reinitialise to create an
+  # identical Record.
   def to_text
     result = ''
-    result += $config.get_abbreviation( 'Start time' ) + ':'
-    result += @start_time.strftime( '%Y-%m-%d-%H:%M' ) + " "
-    result += $config.get_abbreviation( 'End time' ) + ':'
-    result += @end_time.strftime( '%Y-%m-%d-%H:%M' ) + " "
+    if ! @start_time.nil?
+      result += $config.get_abbreviation( 'Start time' ) + ':'
+      result += @start_time.strftime( '%Y-%m-%d-%H:%M' ) + " "
+    end
+    if ! @end_time.nil?
+      result += $config.get_abbreviation( 'End time' ) + ':'
+      result += @end_time.strftime( '%Y-%m-%d-%H:%M' ) + " "
+    end
     @categories.each { |k,v| result += $config.get_abbreviation(k) + ":#{v} " }
     result += @description
   end
@@ -158,9 +166,16 @@ private
 end
 
 
-x = Record.new 's: e:2011-01-01-12:45:37.072 p:crap stuf and more stuff'
+w = Record.new 's: e:2011-01-01-12:45:37.072 p:crap stuf and more stuff'
+x = Record.new 's: p:ploppy stoopid stuff'
 y = RecordList.new
 y.add_record x
-puts y
-puts x.to_text
+y.add_record w
 
+puts
+puts y
+puts
+puts x.to_text
+puts
+puts y.get_records_in_period Time.parse('2011-01-01-00:00:00'), Time.parse('2011-12-31-23:59:59')
+puts
