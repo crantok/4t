@@ -35,6 +35,13 @@ class Config
     @abbreviations[cat] = abbrev
   end
   
+  def get_abbreviation cat
+    # Ruby 1.9.1 - hash.select returns an array of two element arrays.
+    ( @abbreviations.select { |k,v| v == cat } )[0][0]
+    
+    # Ruby 1.9.2 - hash.select returns a new hash. much more sensible
+  end
+  
   def get_full_name abbrev
     @abbreviations[abbrev]
   end
@@ -88,6 +95,13 @@ class Record
   end
 
   def to_text
+    result = ''
+    result += $config.get_abbreviation( 'Start time' ) + ':'
+    result += @start_time.strftime( '%Y-%m-%d-%H:%M' ) + " "
+    result += $config.get_abbreviation( 'End time' ) + ':'
+    result += @end_time.strftime( '%Y-%m-%d-%H:%M' ) + " "
+    @categories.each { |k,v| result += $config.get_abbreviation(k) + ":#{v} " }
+    result += @description
   end
   
   def to_s indent=''
@@ -148,4 +162,5 @@ x = Record.new 's: e:2011-01-01-12:45:37.072 p:crap stuf and more stuff'
 y = RecordList.new
 y.add_record x
 puts y
+puts x.to_text
 
