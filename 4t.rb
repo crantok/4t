@@ -17,21 +17,25 @@ class Config
 
   class Category
     attr_accessor :id, :name, :abbreviation, :options
-    def initialize id, name, abbreviation, options
-      @id = id
+    def initialize name, abbreviation, options, *id
       @name = name
       @abbreviation = abbreviation
       @options = options
+      if ! id.empty?
+        @id = id[0]
+      else
+        @id = get_new_id()
+      end
     end
   end
 
   def initialize
     @categories = [
-      Category.new( get_new_id(), 'Start time', 's', nil ),
-      Category.new( get_new_id(), 'End time',   'e', nil ),
-      Category.new( get_new_id(), 'Project',    'p', [] ),
-      Category.new( get_new_id(), 'Task',       't', [] ),
-      Category.new( get_new_id(), 'Class',      'c', [] )
+      Category.new( 'Start time', 's', nil ),
+      Category.new( 'End time',   'e', nil ),
+      Category.new( 'Project',    'p', [] ),
+      Category.new( 'Task',       't', [] ),
+      Category.new( 'Class',      'c', [] )
     ]
   end
   
@@ -39,36 +43,31 @@ class Config
     @categories = categories
   end
 
-  def add_category cat, abbrev=''
-    return if @options[cat] != nil
-    @options[cat] == []
-    set_abbreviation( abbrev )
+  def add_category name, abbrev=''
+    return if ! get_cats( :name, name ).empty?
+    @categories.push == Category.new( cat, abbrev, [] )
   end
 
-  def set_abbreviation cat, abbrev
-    return if @options[cat] == nil
-    @abbreviations[cat] = abbrev
+  def get_abbreviation name
+    if ( ! ( cats = get_cats( :name, name ) ).empty? ) then return cats[0].abbreviation end
   end
   
-  def get_abbreviation cat
-    # Ruby 1.9.1 - hash.select returns an array of two element arrays.
-    ( @abbreviations.select { |k,v| v == cat } )[0][0]
-    
-    # Ruby 1.9.2 - hash.select returns a new hash. much more sensible
+  def set_abbreviation name, abbrev
+    if ! ( cats = get_cats( :name, name ) ).empty? then cats[0].abbreviation = abbrev end
   end
   
   def get_full_name abbrev
-    @abbreviations[abbrev]
+    if ! ( cats = get_cats( :abbreviation, abbrev ) ).empty? then return cats[0].name end
   end
 
-  def get_options cat
-    return @options[cat]
+  def get_options name
+    if ! ( cats = get_cats( :name, name ) ).empty? then return cats[0].options end
   end
 
 private
 
-  def get_categories attribute, value
-    @categories.select { |v| v.method( attribute ) == value }
+  def get_cats attribute, value
+    @categories.select { |v| v.method( attribute ).call == value }
   end
 end
 
@@ -88,14 +87,14 @@ class Record
     @end_time = nil
     @categories = Hash.new( [] )
     
-    ( text.split /\s/ ).each do | word |
+    ( text.split( /\s/ ) ).each do | word |
 
       case word
 
       when /:/
         abbrev, value = word.split( ':', 2 )
         full_name = $config.get_full_name abbrev
-        
+
         case full_name
         when nil
           description.push word
@@ -164,7 +163,9 @@ class RecordList
   end
   
   def get_records_in_period start_time, end_time
-    @records.select { |k,v| v.start_time < end_time || v.end_time > start_time }
+    @records.select do |k,v|
+      ( !v.start_time.nil?  &&  v.start_time < end_time ) || (  !v.end_time.nil?  &&  v.end_time > start_time )
+    end
   end
 
   def to_s
