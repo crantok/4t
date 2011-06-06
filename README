@@ -1,1 +1,47 @@
+
 The Totally Typing Time Tracker
+
+The grand plan:
+ - UI and back end are 2 separate programs
+ - communication between them is in a well defined text format
+ - text format semantics are dictated partly by local settings, e.g. the user-
+   defined abbreviations for different category types.
+ - every piece of data in the system is UUID'd so that data can be generated on
+   multiple clients and pushed to multiple remote sources. (Or should we scrap
+   this, assume one remote source, and accept an ID from the remote source?)
+ 
+Front end:
+ - requests time records for desired range from back end
+ - sends new records and/or modifications to existing records to back end
+
+Back end:
+ - receives information from front end, parses data, and uploads to attached
+   remote sources
+ - remote sources may respond with a request for more data, e.g. a time record
+   might refer to a project that has not yet been defined in that remote source.
+ - a local source may also be specified, e.g. an sqlite DB. This could be
+   viewed as a cache.
+
+Local config files define:
+ - back end sources
+ - user-defined abbreviations
+ 
+Workflow:
+ - user starts their choice of front end
+ - front end may request a range of time records from back end at startup
+ - user adds new records and modifies existing records
+ - on each of these events, front end calls back end program with the relevant
+   record
+ - back end sends record to remote and/or local sources
+ - remote sources may request further data e.g. new category options
+
+Categories:
+ - a time record may have any number of associated categories
+ - each category has one or more options
+ - a category may be limited to one option per time record, else unlimited
+   options pre time record
+
+Drupal remote source:
+ - Could implement categories as a taxonomy vocabulary, or a new derived bundle.
+ - Vocabularies may already have a suitable once-only/unlimited property or this
+   may need to be implemented (hence new bundle).
